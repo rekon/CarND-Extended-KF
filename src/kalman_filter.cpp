@@ -19,12 +19,12 @@ void KalmanFilter::Init(VectorXd &x_in, MatrixXd &R_lidar_in, MatrixXd &R_radar_
   P_ = MatrixXd(4,4);
   P_ << 1, 0, 0, 0,
 			  0, 1, 0, 0,
-			  0, 0, 100, 0,
-			  0, 0, 0, 100;
+			  0, 0, 1000, 0,
+			  0, 0, 0, 1000;
 
   F_ = MatrixXd(4,4);
-  F_ << 1, 0, 1, 0,
-			  0, 1, 0, 1,
+  F_ << 1, 0, 0.1, 0,
+			  0, 1, 0, 0.1,
 			  0, 0, 1, 0,
 			  0, 0, 0, 1;
 
@@ -36,9 +36,11 @@ void KalmanFilter::Init(VectorXd &x_in, MatrixXd &R_lidar_in, MatrixXd &R_radar_
   
   Q_ = Q_in;
   cout<<"EKF Initialized\n";
+
 }
 
 void KalmanFilter::Predict() {
+	cout<<" In Kalman Predict()\n";
   x_ = F_ * x_;
 	MatrixXd Ft = F_.transpose();
 	P_ = F_ * P_ * Ft + Q_;
@@ -56,7 +58,7 @@ void KalmanFilter::Update(const VectorXd &z) {
 
 	//new estimate
 	x_ = x_ + (K * y);
-	long long x_size = x_.size();
+	long x_size = x_.size();
 	MatrixXd I = MatrixXd::Identity(x_size, x_size);
 	P_ = (I - K * H_) * P_;
 }
@@ -65,7 +67,7 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   cout<<"Update EKF\n";
   //Convert radar from cartesian to polar coordinates and initialize state.
   VectorXd x_polar = tools.Cartesian2Polar(x_);
-  MatrixXd Hj_ = tools.CalculateJacobian( x_polar );
+  MatrixXd Hj_ = tools.CalculateJacobian( x_ );
 
   VectorXd z_pred = x_polar;
 	VectorXd y = z - z_pred;
@@ -80,7 +82,7 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
 
 	//new estimate
 	x_ = x_ + (K * y);
-	long long x_size = x_.size();
+	long x_size = x_.size();
 	MatrixXd I = MatrixXd::Identity(x_size, x_size);
-	P_ = (I - K * H_) * P_;
+	P_ = (I - (K * Hj_)) * P_;
 }

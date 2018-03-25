@@ -23,15 +23,13 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
 
     
 	//accumulate squared residuals
-	double sum = 0, n = estimations.size();
 	for(int i=0; i < estimations.size(); ++i){
     VectorXd diff = estimations[i] - ground_truth[i];
     diff = diff.array()*diff.array();
 		rmse += diff;
 	}
 	
-	//calculate the mean
-	
+	//calculate the mean	
 	rmse /= estimations.size();
 
 	//calculate the squared root
@@ -42,19 +40,19 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
 }
 
 MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
-  cout<<"In CalculateJacobian()\n";
+  cout<<"In CalculateJacobian()"<<x_state<<endl;
   MatrixXd Hj = MatrixXd::Zero(3, 4);
 	//recover state parameters
-	float px = x_state(0);
-	float py = x_state(1);
-	float vx = x_state(2);
-	float vy = x_state(3);
+	double px = x_state(0);
+	double py = x_state(1);
+	double vx = x_state(2);
+	double vy = x_state(3);
 
-  float threshold = 0.0001;
+  double threshold = 0.0001;
   double sq_sum = (px*px + py*py);
 
 	//check division by zero
-	if(( x_state(0) == 0 && x_state(1) == 1 ) || (sqrt(sq_sum) < threshold)){
+	if(( px == 0 && py == 0 ) || (sqrt(sq_sum) < threshold)){
     std::cout<<"Division by zero error";
 	} else {
     //compute the Jacobian matrix
@@ -71,10 +69,10 @@ VectorXd Tools::Cartesian2Polar(const VectorXd& x_state, float threshold){
   cout<<"In Cartesian2Polar\n";
   VectorXd x_polar(3);
 	//recover state parameters
-	float px = x_state(0);
-	float py = x_state(1);
-	float vx = x_state(2);
-	float vy = x_state(3);
+	double px = x_state(0);
+	double py = x_state(1);
+	double vx = x_state(2);
+	double vy = x_state(3);
 
   double rho = sqrt((px*px + py*py));
   double phi = (py == 0.0 && px == 0.0) ? 0.0 : atan2( py, px );
@@ -102,17 +100,21 @@ VectorXd Tools::InitPolar2Cartesian(const VectorXd& x_state){
 
 MatrixXd Tools::GetProcessCovariance(const float noise_ax, const float noise_ay, const float dt){
   cout<<"In GetProcessCovariance()\n";
-  double dt4ax = (pow(dt,4)*noise_ax/4.0f),
-	    dt4ay = (pow(dt,4)*noise_ay/4.0f),
-	    dt3ax = (pow(dt,3)*noise_ax/2.0f),
-	    dt3ay = (pow(dt,3)*noise_ay/2.0f),
-	    dt2ax = (pow(dt,2)*noise_ax),
-	    dt2ay = (pow(dt,2)*noise_ay);
+  double 
+			dt2 = dt*dt,
+			dt3 = dt2*dt,
+			dt4 = dt3*dt,
+			dt4ax = (dt4*noise_ax)/4,
+	    dt4ay = (dt4*noise_ay)/4,
+	    dt3ax = (dt3*noise_ax)/2,
+	    dt3ay = (dt3*noise_ay)/2,
+	    dt2ax = (dt2*noise_ax),
+	    dt2ay = (dt2*noise_ay);
   
 	MatrixXd Q_ = MatrixXd(4, 4);
 	Q_ << dt4ax, 0, dt3ax, 0,
-	            0, dt4ay, 0, dt3ay,
-	            dt3ax, 0, dt2ax, 0,
-	            0, dt3ay, 0, dt2ay;
+				0, dt4ay, 0, dt3ay,
+				dt3ax, 0, dt2ax, 0,
+				0, dt3ay, 0, dt2ay;
   return Q_;
 }

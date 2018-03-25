@@ -47,7 +47,7 @@ FusionEKF::~FusionEKF() {}
 void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 
   VectorXd x_state;
-  MatrixXd Q = tools.GetProcessCovariance(9, 9);
+  MatrixXd Q = tools.GetProcessCovariance(9, 9, 0.1);
   /*****************************************************************************
    *  Initialization
    ****************************************************************************/
@@ -76,7 +76,12 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       Initialize state.
       */
       cout<<"LIDAR init\n";
-      x_state = measurement_pack.raw_measurements_;
+      float px = measurement_pack.raw_measurements_(0),
+            py = measurement_pack.raw_measurements_(1),
+            vx = 0,
+            vy = 0;
+      x_state = VectorXd(4);
+      x_state << px, py, vx, vy;
     }
     ekf_.Init(x_state, R_laser_, R_radar_, Q);
     //Update timestamp
@@ -86,7 +91,9 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     return;
   }
 
-  float dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;	//dt - expressed in seconds
+  cout<<" Subsequent steps\n";
+  x_state = measurement_pack.raw_measurements_;
+  double dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;	//dt - expressed in seconds
 	previous_timestamp_ = measurement_pack.timestamp_;
 
   //1. Modify the F matrix so that the time is integrated
