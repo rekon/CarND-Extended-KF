@@ -40,25 +40,27 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
 }
 
 MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
-  cout<<"In CalculateJacobian()"<<x_state<<endl;
+  cout<<"In CalculateJacobian()\n";
   MatrixXd Hj = MatrixXd::Zero(3, 4);
 	//recover state parameters
-	double px = x_state(0);
-	double py = x_state(1);
-	double vx = x_state(2);
-	double vy = x_state(3);
+	double px = x_state(0),
+				 py = x_state(1),
+				 vx = x_state(2),
+				 vy = x_state(3),
 
-  double threshold = 0.0001;
-  double sq_sum = (px*px + py*py);
+  			 threshold = 0.0001,
+  			 sq_sum = (px*px + py*py),
+				 sqrt_sq_sum = sqrt(sq_sum),
+				 cube_sqrt_sum = sqrt_sq_sum * sq_sum;
 
 	//check division by zero
-	if(( px == 0 && py == 0 ) || (sqrt(sq_sum) < threshold)){
-    std::cout<<"Division by zero error";
+	if(( px == 0 && py == 0 ) || (sqrt_sq_sum < threshold)){
+    cout<<"Division by zero error";
 	} else {
     //compute the Jacobian matrix
-    Hj << px/sqrt(sq_sum), py/sqrt(sq_sum), 0, 0,
+    Hj << px/sqrt_sq_sum, py/sqrt_sq_sum, 0, 0,
         -py/sq_sum, px/sq_sum, 0, 0,
-        (py*(vx*py - vy*px))/pow(sq_sum,3/2), (px*(vy*px -vx*py))/pow(sq_sum,3/2), px/sqrt(sq_sum), py/sqrt(sq_sum);
+        (py*(vx*py - vy*px))/cube_sqrt_sum, (px*(vy*px -vx*py))/cube_sqrt_sum, px/sqrt_sq_sum, py/sqrt_sq_sum;
 	}
 	
 

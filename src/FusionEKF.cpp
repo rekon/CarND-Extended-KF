@@ -47,7 +47,7 @@ FusionEKF::~FusionEKF() {}
 void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 
   VectorXd x_state;
-  MatrixXd Q = tools.GetProcessCovariance(9, 9, 0.1);
+  MatrixXd Q;
   /*****************************************************************************
    *  Initialization
    ****************************************************************************/
@@ -64,6 +64,8 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     ekf_.x_ = VectorXd(4);
     ekf_.x_ << 1, 1, 1, 1;
 
+    Q = tools.GetProcessCovariance(9, 9, 0.1);
+
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
       /**
       Convert radar from polar to cartesian coordinates and initialize state.
@@ -76,7 +78,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       Initialize state.
       */
       cout<<"LIDAR init\n";
-      float px = measurement_pack.raw_measurements_(0),
+      double px = measurement_pack.raw_measurements_(0),
             py = measurement_pack.raw_measurements_(1),
             vx = 0,
             vy = 0;
